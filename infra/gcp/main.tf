@@ -14,7 +14,8 @@ resource "google_compute_network" "vpc_network" {
 
 terraform {
   backend "gcs" {
-    bucket = "terraform-ai"
-    prefix = "terraform1/state"
+    bucket      = "terraform-ai"
+    prefix      = "terraform1"
+    credentials = "terraform-key.json"
   }
 }
