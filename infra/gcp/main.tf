@@ -10,4 +10,11 @@ provider "google" {
 
 resource "google_compute_network" "vpc_network" {
   name = "terraform-network"
-} 
+}
+
+terraform {
+  backend "gcs" {
+    bucket = "terraform-ai"
+    prefix = "terraform1/state"
+  }
+}
