@@ -33,10 +33,10 @@ resource "google_compute_address" "static_ip" {
   name = "terraform-static-ip"
 }
 
-# terraform {
-#   backend "gcs" {
-#     bucket      = "terraform-ai"
-#     prefix      = "terraform1"
-#     credentials = "terraform-key.json"
-#   }
-# }
+terraform {
+  backend "gcs" {
+    bucket      = "terraform-ai"
+    prefix      = "terraform1"
+    credentials = "terraform-key.json"
+  }
+}
