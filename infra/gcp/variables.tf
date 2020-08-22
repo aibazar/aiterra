@@ -1,4 +1,4 @@
-variable "project" { default = }
+variable "project" { default = "aicolab" }
 
 variable "region" { default = "us-central1" }
 
