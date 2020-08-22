@@ -26,22 +26,22 @@ module "network" {
 }
 
 module "network_routes" {
-  source  = "terraform-google-modules/network/google//modules/routes"
-  version = "2.1.1"
+  source       = "terraform-google-modules/network/google//modules/routes"
+  version      = "2.1.1"
   network_name = module.network.network_name
-  project id   = var.project
+  project_id   = var.project
 
-   routes = [
-         {
-             name                   = "egress-internet"
-             description            = "route through IGW to access internet"
-             destination_range      = "0.0.0.0/0"
-             tags                   = "egress-inet"
-             next_hop_internet      = "true"
-         },
+  routes = [
+    {
+      name              = "egress-internet"
+      description       = "route through IGW to access internet"
+      destination_range = "0.0.0.0/0"
+      tags              = "egress-inet"
+      next_hop_internet = "true"
+    },
 
-     ]
-  }
+  ]
+}
 
 
 module "network_fabric-net-firewall" {
