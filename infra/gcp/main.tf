@@ -1,6 +1,6 @@
 module "network" {
   source  = "terraform-google-modules/network/google"
-  version = "2.0.2"
+  version = "2.1.0"
 
   network_name = "my-vpc-network"
   project_id   = var.project
@@ -11,6 +11,12 @@ module "network" {
       subnet_ip     = var.cidrs
       subnet_region = var.region
 
+    },
+    {
+      subnet_name   = "subnet-02"
+      subnet_ip     = 10.1.0.0/16
+      subnet_region = var.region
+      google_private_access = "true"
     },
   ]
 
