@@ -13,10 +13,11 @@ resource "google_compute_network" "vpc_network" {
   name = "new-terraform-network"
 }
 resource "google_compute_instance" "vm_instance" {
-  name         = "terraform-host"
-  machine_type = "f1-micro"
-  tags         = ["web"]
-  zone         = "us-central1-a"
+  name                    = "terraform-host"
+  metadata_startup_script = file("startup.sh")
+  machine_type            = "f1-micro"
+  tags                    = ["web"]
+  zone                    = "us-central1-a"
   boot_disk {
     initialize_params {
       image = "centos-cloud/centos-7"
