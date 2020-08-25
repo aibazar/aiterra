@@ -5,18 +5,18 @@ provider "google" {
   credentials = file("terraform-key.json")
 
   project = var.project
-  region = var.region
-  zone = "us-central1-a"
+  region  = var.region
+  zone    = "us-central1-a"
 }
 
 resource "google_compute_network" "vpc_network" {
   name = "new-terraform-network"
 }
 resource "google_compute_instance" "vm_instance" {
-  name = ""
-  machine_type = ""
-  tags =
-  zone = ""
+  name         = "terraform-host"
+  machine_type = "f1-micro"
+  tags         = ["web"]
+  zone         = "us-central1-a"
   boot_disk {
     initialize_params {
       image = "centos-cloud/centos-7"
@@ -24,7 +24,7 @@ resource "google_compute_instance" "vm_instance" {
   }
 
   network_interface {
-    network =
+    network = google_compute_network.vpc_network.name
     access_config {
     }
   }
@@ -43,12 +43,12 @@ resource "google_compute_firewall" "default" {
     ports    = ["80", "8080", "1000-2000"]
   }
 
-  source_tags = ["web"]
+  source_tags   = ["web"]
   source_ranges = ["0.0.0.0/0"]
 }
 
 
-# Using Terraform to Create a new VPC
+## Using Terraform to Create a new VPC
 # module "network" {
 #   source  = "terraform-google-modules/network/google"
 #   version = "2.1.1"
