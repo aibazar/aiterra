@@ -1,53 +1,135 @@
-# Using Terraform to Create Compute Engine Instances
+# Using Terraform for Auto Scaling and Load Balancing
 provider "google" {
   version = "3.5.0"
 
   credentials = file("terraform-key.json")
 
   project = var.project
-  region  = var.region
-  zone    = "us-central1-a"
+  region  = "us-central1"
+  zone    = "us-central1-c"
 }
 
 resource "google_compute_network" "vpc_network" {
   name = "new-terraform-network"
 }
-resource "google_compute_instance" "vm_instance" {
-  name                    = "terraform-host"
-  metadata_startup_script = file("startup.sh")
-  machine_type            = "f1-micro"
-  tags                    = ["web"]
-  zone                    = "us-central1-a"
-  boot_disk {
-    initialize_params {
-      image = "centos-cloud/centos-7"
+
+# The Autoscaler 
+resource "google_compute_autoscaler" "foobar" {
+  name    = "my-autoscaler"
+  project = var.project
+  zone    = "us-central1-c"
+  target  = google_compute_instance_group_manager.foobar.self_link
+
+  autoscaling_policy {
+    max_replicas    = 5
+    min_replicas    = 1
+    cooldown_period = 60
+
+    cpu_utilization {
+      target = 0.5
     }
+  }
+}
+
+resource "google_compute_instance_template" "foobar" {
+  name           = "my-instance-template"
+  machine_type   = "n1-standard-1"
+  can_ip_forward = false
+  project        = var.project
+  tags           = ["foo", "bar", "allow-lb-service"]
+
+  disk {
+    source_image = data.google_compute_image.centos_7.self_link
   }
 
   network_interface {
-    network = google_compute_network.vpc_network.name
-    access_config {
-    }
+    network = "default"
+  }
+
+  metadata = {
+    foo = "bar"
+  }
+
+  service_account {
+    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
   }
 }
 
-# Create Firewall and Rules
-resource "google_compute_firewall" "default" {
-  name    = "test-firewall"
-  network = google_compute_network.vpc_network.name
-
-  allow {
-    protocol = "icmp"
-  }
-
-  allow {
-    protocol = "tcp"
-    ports    = ["80", "8080", "1000-2000"]
-  }
-
-  source_tags   = ["web"]
-  source_ranges = ["0.0.0.0/0"]
+resource "google_compute_target_pool" "foobar" {
+  name    = "my-target-pool"
+  project = var.project
+  region  = var.region
 }
+
+resource "google_compute_instance_group_manager" "foobar" {
+  name    = "my-igm"
+  zone    = "us-central1-c"
+  project = var.project
+  version {
+    instance_template = google_compute_instance_template.foobar.self_link
+    name              = "primary"
+  }
+
+  target_pools       = [google_compute_target_pool.foobar.self_link]
+  base_instance_name = "terraform"
+}
+
+data "google_compute_image" "centos_7" {
+  family  = "centos-7"
+  project = "centos-cloud"
+}
+
+
+# # Using Terraform to Create Compute Engine Instances
+# provider "google" {
+#   version = "3.5.0"
+
+#   credentials = file("terraform-key.json")
+
+#   project = var.project
+#   region  = var.region
+#   zone    = "us-central1-a"
+# }
+
+# resource "google_compute_network" "vpc_network" {
+#   name = "new-terraform-network"
+# }
+# resource "google_compute_instance" "vm_instance" {
+#   name                    = "terraform-host"
+#   metadata_startup_script = file("startup.sh")
+#   machine_type            = "f1-micro"
+#   tags                    = ["web"]
+#   zone                    = "us-central1-a"
+#   boot_disk {
+#     initialize_params {
+#       image = "centos-cloud/centos-7"
+#     }
+#   }
+
+#   network_interface {
+#     network = google_compute_network.vpc_network.name
+#     access_config {
+#     }
+#   }
+# }
+
+# # Create Firewall and Rules
+# resource "google_compute_firewall" "default" {
+#   name    = "test-firewall"
+#   network = google_compute_network.vpc_network.name
+
+#   allow {
+#     protocol = "icmp"
+#   }
+
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["80", "8080", "1000-2000"]
+#   }
+
+#   source_tags   = ["web"]
+#   source_ranges = ["0.0.0.0/0"]
+# }
 
 
 ## Using Terraform to Create a new VPC
