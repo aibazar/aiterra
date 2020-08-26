@@ -22,7 +22,7 @@ resource "google_compute_autoscaler" "foobar" {
 
   autoscaling_policy {
     max_replicas    = 5
-    min_replicas    = 1
+    min_replicas    = 2
     cooldown_period = 60
 
     cpu_utilization {
@@ -31,6 +31,7 @@ resource "google_compute_autoscaler" "foobar" {
   }
 }
 
+# The Instance Template for the instance group
 resource "google_compute_instance_template" "foobar" {
   name           = "my-instance-template"
   machine_type   = "n1-standard-1"
@@ -53,6 +54,17 @@ resource "google_compute_instance_template" "foobar" {
   service_account {
     scopes = ["userinfo-email", "compute-ro", "storage-ro"]
   }
+}
+
+# Load balancer #
+module "lb" {
+  source       = "GoogleCloudPlatform/lb/google"
+  version      = "2.2.0"
+  region       = var.region
+  name         = "load-balancer"
+  service_port = 80
+  target_tags  = ["my-target-pool"]
+  network      = google_compute_network.vpc_network.name
 }
 
 resource "google_compute_target_pool" "foobar" {
